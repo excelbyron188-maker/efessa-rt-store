@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shop the Edit — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-top">
+      <div class="container">
+        <p class="eyebrow">THE EFESSA RT EDIT</p>
+        <h1>Find your <em>next favourite.</em></h1>
+        <p>Statement pieces and finishing touches for your next occasion.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="catalogue-tools">
+          <input id="catalogue-search" type="search"
+            placeholder="Search pieces…" aria-label="Search products">
+
+          <select id="category-filter" aria-label="Filter category">
+            <option value="">All categories</option>
+            <option value="tops">Tops</option>
+            <option value="jeans">Jeans</option>
+            <option value="dresses">Dresses</option>
+            <option value="heels">Heels</option>
+            <option value="bags">Bags</option>
+            <option value="hoodies">Hoodies</option>
+            <option value="tshirts">T-shirts</option>
+            <option value="sweatshirts">Sweatshirts</option>
+            <option value="accessories">Accessories</option>
+          </select>
+
+          <select id="sort-filter" aria-label="Sort products">
+            <option value="featured">Featured</option>
+            <option value="low">Price: low to high</option>
+            <option value="high">Price: high to low</option>
+          </select>
+        </div>
+
+        <p id="result-count" class="form-note"></p>
+        <div id="catalogue-grid" class="product-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.EFESSA_DATA_READY) await window.EFESSA_DATA_READY;
+      const data = window.EFESSA_DATA;
+      const app = window.EFESSA_APP;
+
+      const search = document.querySelector("#catalogue-search");
+      const category = document.querySelector("#category-filter");
+      const sort = document.querySelector("#sort-filter");
+      const grid = document.querySelector("#catalogue-grid");
+      const count = document.querySelector("#result-count");
+
+      category.value =
+        new URLSearchParams(location.search).get("category") || "";
+
+      function draw() {
+        let products = data.products.filter(product => {
+          const matchesCategory =
+            !category.value || product.category === category.value;
+
+          const text =
+            `${product.name} ${product.category} ${product.description}`
+              .toLowerCase();
+
+          const matchesSearch =
+            !search.value || text.includes(search.value.toLowerCase());
+
+          return matchesCategory && matchesSearch;
+        });
+
+        if (sort.value === "low") {
+          products.sort((a, b) => a.price - b.price);
+        }
+
+        if (sort.value === "high") {
+          products.sort((a, b) => b.price - a.price);
+        }
+
+        count.textContent =
+          `${products.length} ${products.length === 1 ? "piece" : "pieces"} found`;
+
+        app.renderProducts(grid, products);
+      }
+
+      search.addEventListener("input", draw);
+      category.addEventListener("change", draw);
+      sort.addEventListener("change", draw);
+
+      draw();
+    });
+  </script>
+</body>
+</html>

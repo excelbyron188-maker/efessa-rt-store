@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 30px;
+      align-items: start;
+    }
+    .checkout-summary {
+      padding: 25px;
+      border-radius: 18px;
+      background: #f7edc7;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    @media(max-width:750px) {
+      .checkout-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-top">
+      <div class="container">
+        <p class="eyebrow">ALMOST YOURS</p>
+        <h1>Checkout.</h1>
+        <p>Review your bag and enter your delivery details. Delivery is calculated automatically from your selected state.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container checkout-grid">
+
+        <form class="info-card" id="checkout-form">
+          <h2>Delivery details</h2>
+
+          <div class="form-field">
+            <label for="checkout-name">Full name</label>
+            <input id="checkout-name" name="name" required>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-email">Email address</label>
+            <input id="checkout-email" name="email" type="email" required>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-phone">Phone number</label>
+            <input id="checkout-phone" name="phone" type="tel" required>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-address">Delivery address</label>
+            <textarea id="checkout-address" name="address" required></textarea>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-city">City</label>
+            <input id="checkout-city" name="city" required>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-state">Delivery state</label>
+            <select id="checkout-state" name="state" required>
+              <option value="">Choose your state</option>
+              <option>Abia</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>FCT</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="checkout-note">Additional delivery instructions</label>
+            <textarea id="checkout-note" name="note"></textarea>
+          </div>
+
+          <button class="button button-primary" id="checkout-submit" type="submit">Place order request</button>
+          <p class="form-note" id="checkout-message" role="status">Online payment is not enabled yet. Submit your order request and we will contact you to arrange payment and delivery. Do not send money until you receive official payment instructions.</p>
+        </form>
+
+        <aside class="checkout-summary">
+          <h2>Your bag</h2>
+          <div id="checkout-items"></div>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <strong id="checkout-subtotal">₦0</strong>
+          </div>
+
+          <p class="form-note" id="delivery-estimate-note">Choose your state to calculate the delivery fee. The fee is added to your product subtotal.</p>
+          <div class="summary-row">
+            <span>Delivery</span>
+            <strong id="checkout-delivery">₦0</strong>
+          </div>
+
+          <div class="summary-row">
+            <strong>Total</strong>
+            <strong id="checkout-total">₦0</strong>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const cart = window.EFESSA_CART;
+      const app = window.EFESSA_APP;
+      const form = document.querySelector("#checkout-form");
+      const message = document.querySelector("#checkout-message");
+      const submit = document.querySelector("#checkout-submit");
+      const field = name => form.querySelector(`[name="${name}"]`);
+      const readJson = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
+      const profile = readJson("efessa-account", null);
+      if (profile) {
+        field("name").value = profile.name || "";
+        field("email").value = profile.email || "";
+        field("phone").value = profile.phone || "";
+        field("address").value = profile.address || "";
+      }
+      let settings = { localDeliveryFee: 0, nationalDeliveryFee: 0, localState: "", stateDeliveryFees: {} };
+      try {
+        const response = await fetch(`/api/settings/public?refresh=${Date.now()}`, { cache: 'no-store', credentials: 'same-origin' });
+        if (response.ok) settings = (await response.json()).settings || settings;
+      } catch { /* Checkout submission will show a useful error if the server is offline. */ }
+
+      function renderSummary() {
+        const items = cart.read();
+        document.querySelector("#checkout-items").innerHTML = items.length
+          ? items.map(item => `<div class="summary-row"><span>${app.esc(item.name)} × ${app.esc(item.quantity)}${item.size ? ` · ${app.esc(item.size)}` : ""}</span><strong>${app.money(Number(item.price) * Number(item.quantity))}</strong></div>`).join("")
+          : `<p>Your bag is empty. <a href="shop.html">Shop now</a>.</p>`;
+        const subtotal = cart.total();
+        const normalizeState = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const stateAliases = value => { const key = normalizeState(value); if (['fct', 'abuja', 'federal capital territory'].includes(key)) return ['fct', 'abuja', 'federal capital territory']; return [key]; };
+        const selectedState = normalizeState(field("state").value);
+        const localState = normalizeState(settings.localState);
+        const stateFees = settings.stateDeliveryFees || {};
+        const selectedAliases = stateAliases(selectedState);
+        const exactState = Object.keys(stateFees).find(state => selectedAliases.includes(normalizeState(state)) || stateAliases(state).includes(selectedState));
+        const delivery = exactState !== undefined
+          ? Number(stateFees[exactState] || 0)
+          : (localState && selectedState === localState
+            ? Number(settings.localDeliveryFee || 0)
+            : Number(settings.nationalDeliveryFee || 0));
+        document.querySelector("#checkout-subtotal").textContent = app.money(subtotal);
+        document.querySelector("#checkout-delivery").textContent = app.money(delivery);
+        document.querySelector("#checkout-total").textContent = app.money(subtotal + delivery);
+        const deliveryNote = document.querySelector("#delivery-estimate-note");
+        if (deliveryNote) {
+          if (!selectedState) deliveryNote.textContent = "Choose your state to calculate the delivery fee. The fee is added to your product subtotal.";
+          else if (exactState !== undefined) deliveryNote.textContent = `Delivery to ${field("state").value}: ${app.money(delivery)}. This state-specific price was set by the store.`;
+          else deliveryNote.textContent = `Delivery to ${field("state").value}: ${app.money(delivery)}. The store's fallback delivery price is being used for this state.`;
+        }
+        submit.disabled = !items.length;
+      }
+      renderSummary();
+      window.addEventListener("efessa:cart-updated", renderSummary);
+      field("state").addEventListener("input", renderSummary);
+      field("state").addEventListener("change", renderSummary);
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const items = cart.read();
+        if (!items.length) { message.textContent = "Your bag is empty. Add a product before checking out."; return; }
+        if (!form.reportValidity()) return;
+        submit.disabled = true;
+        submit.textContent = "Submitting order…";
+        message.textContent = "Checking stock and submitting your order. Please wait.";
+        const customer = {
+          name: field("name").value.trim(), email: field("email").value.trim(), phone: field("phone").value.trim(),
+          address: field("address").value.trim(), city: field("city").value.trim(), state: field("state").value.trim(), note: field("note").value.trim()
+        };
+        try {
+          const response = await fetch("/api/checkout", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customer, items: items.map(item => ({ id: item.id, size: item.size || "", color: item.color || "", quantity: Number(item.quantity) })) })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result.success || !result.orderReference) throw new Error(result.message || "We couldn't submit your order. Please try again.");
+          localStorage.setItem("efessa-last-order-reference", result.orderReference);
+          localStorage.setItem("efessa-last-order-email", customer.email);
+          cart.clear();
+          window.location.assign(`order-confirmation.html?id=${encodeURIComponent(result.orderReference)}&placed=1`);
+        } catch (error) {
+          message.textContent = error.message || "Connection problem. Please check your internet and try again.";
+          submit.disabled = false;
+          submit.textContent = "Place order request";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

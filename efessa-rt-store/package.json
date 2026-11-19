@@ -1,0 +1,18 @@
+{
+  "name": "efessa-rt-store",
+  "version": "1.0.0",
+  "description": "EFESSA RT fashion e-commerce website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "pg": "^8.23.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

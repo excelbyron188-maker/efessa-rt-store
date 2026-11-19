@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1125" viewBox="0 0 900 1125">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f2deda"/>
+      <stop offset="1" stop-color="#9b596f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1125" fill="url(#g)"/>
+  <circle cx="650" cy="230" r="210" fill="#fff" opacity=".18"/>
+  <path d="M0 880 Q280 720 500 900 T900 820 V1125 H0Z" fill="#351b2b" opacity=".18"/>
+  <text x="450" y="540" font-family="Arial,sans-serif" font-size="42" fill="#351b2b" text-anchor="middle" letter-spacing="4">Product Top</text>
+  <text x="450" y="595" font-family="Arial,sans-serif" font-size="20" fill="#351b2b" text-anchor="middle">Replace with approved brand image</text>
+</svg>

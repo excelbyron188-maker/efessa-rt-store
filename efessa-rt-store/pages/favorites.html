@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your favourites — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-top">
+      <div class="container">
+        <p class="eyebrow">YOUR PERSONAL EDIT</p>
+        <h1>Saved <em>favourites.</em></h1>
+        <p>Keep the pieces you love in one place.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div id="favorites-grid" class="product-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.EFESSA_DATA_READY) await window.EFESSA_DATA_READY;
+      const grid = document.querySelector("#favorites-grid");
+
+      function draw() {
+        const ids = window.EFESSA_FAVORITES.read();
+        const products = window.EFESSA_DATA.products.filter(
+          product => ids.includes(product.id)
+        );
+
+        if (!products.length) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <h3>No favourites saved yet.</h3>
+              <p>Tap the heart on a product to save it here.</p>
+              <a class="button button-primary" href="shop.html">Explore the shop</a>
+            </div>`;
+          return;
+        }
+
+        window.EFESSA_APP.renderProducts(grid, products);
+      }
+
+      draw();
+
+      window.addEventListener("efessa:favorites-updated", draw);
+    });
+  </script>
+</body>
+</html>

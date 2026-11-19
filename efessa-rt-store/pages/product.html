@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <style>
+    .product-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 45px;
+      align-items: start;
+    }
+    .product-detail-image {
+      width: 100%;
+      border-radius: 20px;
+      background: #f7edc7;
+    }
+    .product-detail-copy { padding-top: 25px; }
+    .product-detail-copy h1 { font-size: clamp(2.3rem, 5vw, 4rem); }
+    .detail-price { font-size: 1.4rem; font-weight: 700; }
+    .detail-description { line-height: 1.8; }
+    .detail-options { margin: 25px 0; }
+    .detail-options label { display: block; margin-bottom: 8px; font-weight: 700; }
+    .detail-options select { margin-bottom: 15px; }
+    .quantity-input { max-width: 100px; }
+    @media(max-width:700px) {
+      .product-detail { grid-template-columns: 1fr; gap: 15px; }
+      .product-detail-copy { padding-top: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-top">
+      <div class="container">
+        <p class="eyebrow">THE DETAILS MATTER</p>
+        <div id="breadcrumb">Home / Product</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div id="product-detail"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>You might also <em>love.</em></h2>
+        <div id="related-products" class="product-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.EFESSA_DATA_READY) await window.EFESSA_DATA_READY;
+      const data = window.EFESSA_DATA;
+      const app = window.EFESSA_APP;
+      const id = new URLSearchParams(location.search).get("id");
+      const product = data.products.find(item => item.id === id);
+      const target = document.querySelector("#product-detail");
+
+      if (!product) {
+        target.innerHTML = `
+          <div class="empty-state">
+            <h2>We couldn't find that piece.</h2>
+            <p>It may have moved or been removed.</p>
+            <a class="button button-primary" href="shop.html">Back to shop</a>
+          </div>`;
+        return;
+      }
+
+      document.title = `${product.name} — EFESSA RT`;
+
+      document.querySelector("#breadcrumb").innerHTML =
+        `<a href="../index.html">Home</a> /
+         <a href="shop.html">Shop</a> / ${app.esc(product.name)}`;
+
+      target.innerHTML = `
+        <div class="product-detail">
+          <img class="product-detail-image"
+            src="${app.esc(product.image)}" alt="${app.esc(product.name)}">
+
+          <div class="product-detail-copy">
+            <p class="eyebrow">${app.esc(product.category)}</p>
+            <h1>${app.esc(product.name)}</h1>
+            <p class="detail-price">${app.money(product.price)}</p>
+            <p class="detail-description">${app.esc(product.description)}</p>
+
+            <div class="detail-options">
+              <label for="detail-size">Choose size</label>
+              <select id="detail-size">
+                ${product.sizes.map(size =>
+                  `<option value="${app.esc(size)}">${app.esc(size)}</option>`
+                ).join("")}
+              </select>
+
+              <label for="detail-color">Choose colour</label>
+              <select id="detail-color">
+                ${product.colors.map(color =>
+                  `<option value="${app.esc(color)}">${app.esc(color)}</option>`
+                ).join("")}
+              </select>
+
+              <label for="detail-quantity">Quantity</label>
+              <input class="quantity-input" id="detail-quantity"
+                type="number" min="1" max="${product.stock}" value="1">
+            </div>
+
+            <button class="button button-primary" id="detail-add">
+              Add to bag
+            </button>
+
+            <button class="button" id="detail-favorite">
+              ${window.EFESSA_FAVORITES.has(product.id)
+                ? "♥ Saved to favourites"
+                : "♡ Save piece"}
+            </button>
+
+            <p class="form-note">
+              Demonstration storefront: real inventory and checkout
+              require a backend connection.
+            </p>
+          </div>
+        </div>
+      `;
+
+      const quantityInput = document.querySelector("#detail-quantity");
+      const addButton = document.querySelector("#detail-add");
+
+      if (!(product.stock >= 1)) {
+        addButton.disabled = true;
+        addButton.textContent = "Sold out";
+        quantityInput.disabled = true;
+      }
+
+      addButton.addEventListener("click", () => {
+        // Whole numbers only, never less than 1. The cart then applies the
+        // stock limit. (The real server will enforce stock again later.)
+        let quantity = Math.floor(Number(quantityInput.value));
+        if (!Number.isFinite(quantity) || quantity < 1) quantity = 1;
+
+        const result = window.EFESSA_CART.add(product, {
+          size: document.querySelector("#detail-size").value,
+          color: document.querySelector("#detail-color").value,
+          quantity
+        });
+
+        quantityInput.value = 1;
+        app.updateCartUI();
+
+        if (!result.added) {
+          app.toast(`You already have all ${result.stock} available in your bag.`);
+        } else if (result.limited) {
+          app.toast(`Only ${result.stock} available, so we added ${result.added}.`);
+        } else {
+          app.toast("Added to your bag.");
+        }
+      });
+
+      document.querySelector("#detail-favorite").addEventListener("click", event => {
+        const active = window.EFESSA_FAVORITES.toggle(product.id);
+        event.target.textContent = active
+          ? "♥ Saved to favourites"
+          : "♡ Save piece";
+        app.toast(active ? "Saved to favourites." : "Removed from favourites.");
+      });
+
+      app.renderProducts(
+        document.querySelector("#related-products"),
+        data.products.filter(item =>
+          item.category === product.category && item.id !== product.id
+        ).slice(0, 4)
+      );
+    });
+  </script>
+</body>
+</html>

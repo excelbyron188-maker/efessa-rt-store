@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order confirmation — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="info-card" style="max-width:720px;margin:auto;text-align:center">
+          <p class="eyebrow">THANK YOU</p>
+          <h1>Your order is <em>recorded.</em></h1>
+          <p id="confirmation-message">
+            Your order request has been received. Payment is not available on the website yet; we will contact you to arrange payment and delivery.
+          </p>
+          <div id="order-details"></div>
+          <form id="order-lookup-form" style="max-width:440px;margin:22px auto;text-align:left">
+            <div class="form-field"><label for="order-email">Email used at checkout</label><input id="order-email" type="email" autocomplete="email" required></div>
+            <button class="button button-primary" type="submit">Check order status</button>
+          </form>
+          <p id="lookup-message" class="form-note" role="status"></p>
+          <a class="button button-primary" href="shop.html">Keep exploring</a>
+          <a class="button" href="orders.html">View my orders</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.EFESSA_DATA_READY) await window.EFESSA_DATA_READY;
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id") || localStorage.getItem("efessa-last-order-reference") || "";
+      const form = document.querySelector("#order-lookup-form");
+      const emailField = document.querySelector("#order-email");
+      const message = document.querySelector("#lookup-message");
+      const target = document.querySelector("#order-details");
+      const app = window.EFESSA_APP;
+      emailField.value = localStorage.getItem("efessa-last-order-email") || "";
+      if (params.get("placed") === "1") message.textContent = "Your order request was submitted successfully. Payment has not been taken. Please wait for official payment and delivery instructions from EFESSA RT.";
+      if (!id) { document.querySelector("#confirmation-message").textContent = "Enter your order reference and checkout email on the My Orders page to find an order."; return; }
+      document.querySelector("#confirmation-message").textContent = `Order reference: ${id}. We will only display details after the checkout email is verified.`;
+      async function lookup(event) {
+        if (event) event.preventDefault();
+        message.textContent = "Checking order…";
+        try {
+          const response = await fetch(`/api/orders/${encodeURIComponent(id)}?email=${encodeURIComponent(emailField.value.trim())}`);
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Could not find order.");
+          const order = result.order;
+          target.innerHTML = `<h2>Order ${app.esc(order.id)}</h2><p>Order total: <strong>${app.money(order.total)}</strong></p><p>Items: ${order.items.map(item => `${app.esc(item.name)} × ${app.esc(item.quantity)}`).join(", ")}</p><p>Order status: <strong>${app.esc(order.status)}</strong></p><p>Payment status: <strong>${app.esc(order.paymentStatus)}</strong></p><p>Delivery: ${app.money(order.delivery)}</p>`;
+          message.textContent = order.paymentStatus === "paid" ? "Payment is marked as confirmed. Thank you for shopping with EFESSA RT." : "Your order is recorded, but payment has not been taken or confirmed online. EFESSA RT will contact you to arrange payment and delivery.";
+        } catch (error) { target.innerHTML = ""; message.textContent = error.message; }
+      }
+      form.addEventListener("submit", lookup);
+      if (emailField.value) lookup();
+    });
+  </script>
+</body>
+</html>

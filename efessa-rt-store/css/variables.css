@@ -1,0 +1,35 @@
+/* Brand fonts. Loaded here so EVERY page uses them, not only the homepage. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap");
+
+/* Edit these design tokens to change the visual identity site-wide. */
+
+:root {
+  --color-bg-dark: #641735;
+  --color-bg-dark-soft: #84264d;
+  --color-bg-light: #FFFAEF;
+  --color-card: #FFFDF7;
+
+  --color-accent: #F4D35E; /* confident butter yellow */
+  --color-accent-strong: #9D5C90; /* pronounced bluish-pink / mauve accent */
+  --color-accent-glow: rgba(157, 92, 144, .24);
+
+  --color-text-dark: #30101F;
+  --color-text-light: #fffaf4;
+  --color-muted: #765967;
+
+  --color-border: #E5D4E0;
+  --color-border-gold: #DDBD45;
+  --color-heart: #9D5C90;
+
+  --radius-card: 20px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 12px 35px rgba(100, 23, 53, .10);
+  --shadow-card-hover: 0 22px 45px rgba(100, 23, 53, .18);
+
+  --font-main: "DM Sans", Arial, sans-serif;
+  --font-display: "Playfair Display", Georgia, serif;
+
+  --container-max: 1240px;
+  --section-gap: 104px;
+}

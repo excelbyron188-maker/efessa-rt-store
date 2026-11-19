@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact us — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/sections.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main>
+    <section class="page-top">
+      <div class="container">
+        <p class="eyebrow">WE'RE HERE TO HELP</p>
+        <h1>Let's <em>talk.</em></h1>
+        <p>Questions about sizing, delivery, a product or an order? Send us a message.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="info-card" style="max-width:700px;margin:auto">
+          <div class="contact-direct-details" style="margin-bottom:28px;padding:18px 20px;border-radius:14px;background:var(--color-bg-light)">
+            <h2 style="font-size:1.25rem;margin-bottom:10px">Contact EFESSA RT directly</h2>
+            <p style="margin:7px 0">WhatsApp / Phone: <a href="https://wa.me/2349063488903" target="_blank" rel="noopener noreferrer">0906 348 8903</a></p>
+            <p style="margin:7px 0">Email: <a href="mailto:efessartbrand@gmail.com">efessartbrand@gmail.com</a></p>
+          </div>
+          <form id="contact-form">
+            <div class="form-field">
+              <label for="contact-name">Your name</label>
+              <input id="contact-name" required>
+            </div>
+
+            <div class="form-field">
+              <label for="contact-email">Email address</label>
+              <input id="contact-email" type="email" required>
+            </div>
+
+            <div class="form-field">
+              <label for="contact-topic">What can we help with?</label>
+              <select id="contact-topic">
+                <option>Sizing advice</option>
+                <option>Product question</option>
+                <option>Delivery</option>
+                <option>Existing order</option>
+                <option>Exchange or refund</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="contact-message">Your message</label>
+              <textarea id="contact-message" required></textarea>
+            </div>
+
+            <button class="button button-primary" type="submit">
+              Send message
+            </button>
+          </form>
+
+          <p id="contact-status" aria-live="polite"></p>
+
+          <p class="form-note">
+            When you submit this form, WhatsApp opens with your message prepared so you can send it directly to EFESSA RT.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/favorites.js"></script>
+  <script src="../js/main.js"></script>
+
+  <script>
+    document.querySelector("#contact-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = document.querySelector("#contact-name").value.trim();
+      const email = document.querySelector("#contact-email").value.trim();
+      const topic = document.querySelector("#contact-topic").value;
+      const message = document.querySelector("#contact-message").value.trim();
+      const text = `Hello EFESSA RT, my name is ${name}.\nEmail: ${email}\nTopic: ${topic}\n\n${message}`;
+      const url = `https://wa.me/2349063488903?text=${encodeURIComponent(text)}`;
+      const opened = window.open(url, "_blank");
+      if (opened) opened.opener = null;
+      else window.location.href = url;
+      document.querySelector("#contact-status").textContent =
+        "WhatsApp is opening with your message. Please press Send in WhatsApp to contact us.";
+    });
+  </script>
+</body>
+</html>

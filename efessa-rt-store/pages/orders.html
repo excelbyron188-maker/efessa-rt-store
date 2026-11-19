@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track an order — EFESSA RT</title>
+  <link rel="stylesheet" href="../css/variables.css"><link rel="stylesheet" href="../css/base.css"><link rel="stylesheet" href="../css/header.css"><link rel="stylesheet" href="../css/sections.css"><link rel="stylesheet" href="../css/footer.css"><link rel="stylesheet" href="../css/responsive.css">
+  <style>.order-card{max-width:760px;margin:0 auto;padding:24px;border:1px solid var(--color-border);border-radius:16px;background:#fff}.order-items{padding-left:20px}.order-status{display:inline-block;padding:6px 10px;border-radius:20px;background:#f7edc7}</style>
+</head>
+<body>
+  <div id="site-header"></div>
+  <main><section class="page-top"><div class="container"><p class="eyebrow">YOUR EFESSA RT ORDER</p><h1>Track your <em>order.</em></h1><p>Use your order reference and the email address provided at checkout.</p></div></section>
+    <section class="section"><div class="container">
+      <form id="order-search" class="info-card" style="max-width:560px;margin:0 auto 28px">
+        <div class="form-field"><label for="order-reference">Order reference</label><input id="order-reference" required autocomplete="off" value=""></div>
+        <div class="form-field"><label for="order-email">Checkout email address</label><input id="order-email" type="email" required autocomplete="email"></div>
+        <button class="button button-primary" type="submit">Find my order</button><p id="search-message" class="form-note" role="status"></p>
+      </form>
+      <div id="order-result"></div>
+    </div></section>
+  </main>
+  <div id="site-footer"></div><div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <script src="../js/data.js"></script><script src="../js/cart.js"></script><script src="../js/favorites.js"></script><script src="../js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async()=>{
+      if(window.EFESSA_DATA_READY)await window.EFESSA_DATA_READY;
+      const $=s=>document.querySelector(s), esc=window.EFESSA_APP.esc, money=window.EFESSA_APP.money;
+      $('#order-reference').value=new URLSearchParams(location.search).get('id')||localStorage.getItem('efessa-last-order-reference')||'';
+      $('#order-email').value=localStorage.getItem('efessa-last-order-email')||'';
+      $('#order-search').addEventListener('submit',async e=>{
+        e.preventDefault();$('#search-message').textContent='Looking up your order…';$('#order-result').innerHTML='';
+        const id=$('#order-reference').value.trim(),email=$('#order-email').value.trim();
+        try{
+          const response=await fetch(`/api/orders/${encodeURIComponent(id)}?email=${encodeURIComponent(email)}`);const result=await response.json();
+          if(!response.ok||!result.success)throw new Error(result.message||'Order not found.');
+          const o=result.order;
+          $('#order-result').innerHTML=`<article class="order-card"><p class="eyebrow">ORDER DETAILS</p><h2>${esc(o.id)}</h2><p>Placed: ${new Date(o.createdAt).toLocaleString()}</p><p>Order status: <span class="order-status">${esc(o.status)}</span></p><p>Payment status: <strong>${esc(o.paymentStatus)}</strong></p><ul class="order-items">${o.items.map(i=>`<li>${esc(i.name)}${i.size?' · '+esc(i.size):''}${i.color?' · '+esc(i.color):''} × ${esc(i.quantity)} — ${money(i.price*i.quantity)}</li>`).join('')}</ul><p>Subtotal: ${money(o.subtotal)}</p><p>Delivery: ${money(o.delivery)}</p><h3>Total: ${money(o.total)}</h3><p>${o.paymentStatus==='paid'?'Your payment has been verified.':'Payment has not yet been confirmed. If you have completed a transfer or payment, allow a short time for verification.'}</p></article>`;
+          $('#search-message').textContent='Order found.';
+        }catch(error){$('#search-message').textContent=error.message;}
+      });
+      if($('#order-reference').value&&$('#order-email').value)$('#order-search').requestSubmit();
+    });
+  </script>
+</body>
+</html>
